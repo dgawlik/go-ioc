@@ -1,5 +1,8 @@
 package goioc
 
+// This is place for configuration values attached to the
+// Container. The values can inform binding decisions when
+// doing BindInject.
 type Properties struct {
 	data *map[string]any
 }
