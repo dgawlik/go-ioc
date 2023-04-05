@@ -68,5 +68,6 @@ func (b *Binding) resolve(bindings []Binding, forceRebind bool) (any, error) {
 	}
 
 	b.resolved = reflect.ValueOf(b.ctor).Call(injections)[0].Interface()
+
 	return b.resolved, nil
 }
