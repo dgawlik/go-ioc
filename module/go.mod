@@ -1,3 +1,3 @@
-module dgawlik.org/go-ioc
+module github.com/dgawlik/go-ioc
 
 go 1.20
