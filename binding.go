@@ -31,8 +31,9 @@ func newBinding(targetType reflect.Type, value any, isCtor bool) Binding {
 
 func validate(binding Binding, isCtor bool) error {
 	if isCtor {
-		if reflect.TypeOf(binding.ctor).Kind() != reflect.Func &&
-			reflect.TypeOf(binding.ctor).NumOut() != 1 {
+		if reflect.TypeOf(binding.ctor).Kind() != reflect.Func ||
+			reflect.TypeOf(binding.ctor).NumOut() != 1 ||
+			reflect.TypeOf(binding.ctor).Kind() != reflect.Func {
 
 			return fmt.Errorf("%T is not valid constructor prototype", binding.ctor)
 		}
