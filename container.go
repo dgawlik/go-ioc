@@ -56,6 +56,12 @@ func Bind[T any](value any) error {
 
 	newB := newBinding(targetType, value, false)
 
+	err := validate(newB, false)
+
+	if err != nil {
+		return err
+	}
+
 	idx := findBinding(c.bindings, targetType)
 	if idx == -1 {
 		c.bindings = append(c.bindings, newB)
@@ -74,13 +80,13 @@ func BindInject[T any](value any) error {
 
 	targetType := reflect.TypeOf(*new(T))
 
-	if reflect.TypeOf(value).Kind() != reflect.Func &&
-		reflect.TypeOf(value).NumOut() != 1 {
-
-		return fmt.Errorf("%T is not valid constructor prototype", value)
-	}
-
 	newB := newBinding(targetType, value, true)
+
+	err := validate(newB, true)
+
+	if err != nil {
+		return err
+	}
 
 	idx := findBinding(c.bindings, targetType)
 	if idx == -1 {

@@ -29,6 +29,28 @@ func newBinding(targetType reflect.Type, value any, isCtor bool) Binding {
 
 }
 
+func validate(binding Binding, isCtor bool) error {
+	if isCtor {
+		if reflect.TypeOf(binding.ctor).Kind() != reflect.Func &&
+			reflect.TypeOf(binding.ctor).NumOut() != 1 {
+
+			return fmt.Errorf("%T is not valid constructor prototype", binding.ctor)
+		}
+
+		nested := reflect.TypeOf(binding.ctor).Out(0)
+
+		if !nested.ConvertibleTo(binding.targetType) {
+			return fmt.Errorf("%v is not convertible to target type %v", nested, binding.targetType)
+		}
+	} else {
+		if !reflect.TypeOf(binding.resolved).ConvertibleTo(binding.targetType) {
+			return fmt.Errorf("%v is not convertible to target type %v", reflect.TypeOf(binding.resolved), binding.targetType)
+		}
+	}
+
+	return nil
+}
+
 func findBinding(bindings []Binding, t reflect.Type) int {
 	return find(bindings, func(b Binding) bool {
 		return b.matches(t)
