@@ -1,148 +1,230 @@
-# go-ioc - lightweight ioc container for go
+# goioc - lightweight ioc container for go
 
-Project aims to help better managing medium and big applications with help of Dependency Injection.
-It provides wrapper over function currying to inject dependencies to function and structs.
+Coming from Java background I was used to Spring to inject dependencies in large projects, so thought I will also use some container in Go. 
+There are many other packages serving the same purpose, but this one has api (design) closest to my personal preferences. It also 
+is so small that you can read the source code in coffee break.
+
+Features:
+
+* injection by *type definition*
+* dependencies computed on demand
+* caching of computed dependencies
+* properties (attached per container)
+
 
 
 ### Api
 
 ```go
-func NewContainer() Container 
+func Resolve[T any](forceRebind bool) (T, error) 
 ```
 
-creates new DI container.
+Returns fully injected value bound to type T. On consecutive calls and forceRebind false, value from
+cache is taken. forceRebind forces to create new injected values anyway and overwrite cache.
 
 
 ```go
-func SetProperty(c *Container, key string, value any)
+func Bind[T any](value any) error
 ```
-attaches named value to the container. These values can help to 
-reconfigure bindings on the fly.
+
+Associates value with type T. The value is taken as is from the function and put to cache.
 
 
 ```go
-func Bind[T any](c *Container, value any) error 
-```
-create mapping between T type and provided value. The mapping is singleton.
-
-```go
-func BindInject[T any](c *Container, value any) error 
-```
-here you provide curried function. First function definition lists all injected dependencies.
-The returned function is called to create the value. The binding is singleton.
-
-
-```go
-func Resolve[T any](c Container, forceRebind bool) (T, error) 
+func BindInject[T any](value any) error
 ```
 
-resolve value for type T. Force rebind flag makes recompute again all the dependencies.
+Expects curried function to be provided. Outer function's parameters are values to be injected. During
+resolve this function is called to produce **proper** value.
 
-
-### Example
 ```go
+func SetProperty(key string, value any) 
+```
 
+Attaches some value to key container-wise. You can think of it as containers metadata. Then you can
+inject `Properties` built-in type to recover values.
+
+```go
+func NewContainer() *Container 
+```
+
+Creates new container with fresh state and no bindings.
+
+```go
+func SetContainer(newC *Container)
+```
+
+Sets default container to this one.
+
+
+### Design
+
+You can think of the container as curried functions on steroids. Had you used plain technique of curried functions you would 
+have to pass "callbacks" all the way down the hierarchy. In contrast container does this for you during the resolve phase.
+All you have to do is to provide one level down downstream dependencies. The cost that you pay is a little ugly nested function
+definitions in Bind/BindInject.
+
+The design lacks concept of scopes familiar from Spring, instead it mocks prototype and singleton scopes with caching and flag `forceRebind`.
+Injections happen during resolution phase, if value is missing from cache it is put there if its there it is reused. This is singleton scope.
+On the other hand if forceRebind equals true container recomputes the value anyway and overwrites the cache - this is prototype scope.
+
+
+### Examples
+
+Example on general usage
+
+```go
 package main
 
 import (
 	"fmt"
+	"math"
+
+	goioc "github.com/dgawlik/go-ioc"
 )
 
-type Greeter func(name string)
-type Adder func(a, b int) int
-type Divider func(a, b float32) float32
+type IsPrime func(num int) bool
 
-type SomeStruct struct {
-	x int
-	g Greeter
-	a Adder
-}
-
-// func(Greeter, Adder) func(x int)116
-type Assembler func(x int)
-
-// func(Assembler, Divider) func(x int16)
-type Assembler2 func(x int16)
-
-type Op func(x int) int
+type Greeter func(name string, age int)
 
 func main() {
 
-	c := DefaultContainer
-
-	Bind[Greeter](&c, func(name string) {
-		fmt.Printf("Hello %s\n", name)
-	})
-
-	Bind[Adder](&c, func(a, b int) int {
-		return a + b
-	})
-
-	Bind[Divider](&c, func(a, b float32) float32 {
-		return a / b
-	})
-
-	BindInject[Assembler](&c, func(g Greeter, a Adder) func(x int) {
-		return func(x int) {
-			g("Dominik")
-			fmt.Println(a(1, 2))
+	goioc.Bind[IsPrime](func(num int) bool {
+		if num < 2 {
+			return false
 		}
-	})
-
-	BindInject[Assembler2](&c, func(ai Assembler, d Divider) func(x int16) {
-		return func(x int16) {
-			ai(0)
-			fmt.Println(d(10, 5))
-		}
-	})
-
-	BindInject[SomeStruct](&c, func(g Greeter, a Adder) SomeStruct {
-		return SomeStruct{
-			x: 2,
-			g: g,
-			a: a,
-		}
-	})
-
-	BindInject[Op](&c, func(p Properties) func(int) int {
-		mode, _ := p.GetString("mode")
-		if mode == "quad" {
-			return func(x int) int {
-				return x * 4
+		sq_root := int(math.Sqrt(float64(num)))
+		for i := 2; i <= sq_root; i++ {
+			if num%i == 0 {
+				return false
 			}
+		}
+		return true
+	})
+
+	goioc.BindInject[Greeter](func(isPrime IsPrime) func(name string, age int) {
+		return func(name string, age int) {
+			statement := "is not"
+			if isPrime(age) {
+				statement = "is"
+			}
+
+			fmt.Printf("Hello %s, your age %s prime.\n", name, statement)
+		}
+	})
+
+	greeter, _ := goioc.Resolve[Greeter](false)
+
+	greeter("Dominik", 33)
+}
+```
+
+
+Short sample how properties can interact with injections.
+
+```go
+package main
+
+import (
+	"fmt"
+
+	goioc "github.com/dgawlik/go-ioc"
+)
+
+type Operation func(x int) int
+
+func double(x int) int {
+	return x * 2
+}
+
+func quad(x int) int {
+	return x * 4
+}
+
+func main() {
+
+	goioc.BindInject[Operation](func(props goioc.Properties) func(x int) int {
+		v, _ := props.String("mode")
+		if v == "double" {
+			return double
 		} else {
-			return func(x int) int {
-				return x * 2
-			}
+			return quad
 		}
 	})
 
-	x, err := Resolve[Assembler2](c, true)
+	goioc.SetProperty("mode", "double")
 
-	if err != nil {
-		panic(err)
-	}
+	op, _ := goioc.Resolve[Operation](true)
 
-	x(0)
+	fmt.Printf("Operation double: %d -> %d\n", 2, op(2))
 
-	y, err := Resolve[SomeStruct](c, true)
+	goioc.SetProperty("mode", "quad")
 
-	if err != nil {
-		panic(err)
-	}
+	op, _ = goioc.Resolve[Operation](true)
 
-	y.g("Mark")
+	fmt.Printf("Operation quad: %d -> %d\n", 2, op(2))
 
-	SetProperty(&c, "mode", "dual")
+}
+```
 
-	z, _ := Resolve[Op](c, true)
+How to simulate protype scope
 
-	fmt.Println(z(2))
+```go
+package main
 
-	SetProperty(&c, "mode", "quad")
+import (
+	"fmt"
 
-	z, _ = Resolve[Op](c, true)
+	goioc "github.com/dgawlik/go-ioc"
+)
 
-	fmt.Println(z(2))
+type Fn func(elem int) bool
+
+type Filter func(arr []int) []int
+
+func main() {
+
+	goioc.Bind[Fn](func(el int) bool {
+		if el%2 == 0 {
+			return true
+		} else {
+			return false
+		}
+	})
+
+	goioc.BindInject[Filter](func(f Fn) func([]int) []int {
+
+		return func(arr []int) []int {
+			var newArr []int
+
+			for _, e := range arr {
+				if f(e) {
+					newArr = append(newArr, e)
+				}
+			}
+
+			return newArr
+		}
+
+	})
+
+	arr := [10]int{1, 2, 3, 4, 5, 7, 8, 9}
+
+	filter, _ := goioc.Resolve[Filter](true)
+
+	fmt.Println(filter(arr[:]))
+
+	goioc.Bind[Fn](func(el int) bool {
+		if el%2 == 1 {
+			return true
+		} else {
+			return false
+		}
+	})
+
+	filter, _ = goioc.Resolve[Filter](true)
+
+	fmt.Println(filter(arr[:]))
+
 }
 ```
