@@ -12,9 +12,8 @@ type IsPrime func(num int) bool
 type Greeter func(name string, age int)
 
 func main() {
-	c := goioc.DefaultContainer
 
-	goioc.Bind[IsPrime](&c, func(num int) bool {
+	goioc.Bind[IsPrime](func(num int) bool {
 		if num < 2 {
 			return false
 		}
@@ -27,7 +26,7 @@ func main() {
 		return true
 	})
 
-	goioc.BindInject[Greeter](&c, func(isPrime IsPrime) func(name string, age int) {
+	goioc.BindInject[Greeter](func(isPrime IsPrime) func(name string, age int) {
 		return func(name string, age int) {
 			statement := "is not"
 			if isPrime(age) {
@@ -38,7 +37,7 @@ func main() {
 		}
 	})
 
-	greeter, _ := goioc.Resolve[Greeter](c, false)
+	greeter, _ := goioc.Resolve[Greeter](false)
 
 	greeter("Dominik", 33)
 }

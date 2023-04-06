@@ -17,9 +17,8 @@ func quad(x int) int {
 }
 
 func main() {
-	c := goioc.DefaultContainer
 
-	goioc.BindInject[Operation](&c, func(props goioc.Properties) func(x int) int {
+	goioc.BindInject[Operation](func(props goioc.Properties) func(x int) int {
 		v, _ := props.String("mode")
 		if v == "double" {
 			return double
@@ -28,15 +27,15 @@ func main() {
 		}
 	})
 
-	goioc.SetProperty(&c, "mode", "double")
+	goioc.SetProperty("mode", "double")
 
-	op, _ := goioc.Resolve[Operation](c, true)
+	op, _ := goioc.Resolve[Operation](true)
 
 	fmt.Printf("Operation double: %d -> %d\n", 2, op(2))
 
-	goioc.SetProperty(&c, "mode", "quad")
+	goioc.SetProperty("mode", "quad")
 
-	op, _ = goioc.Resolve[Operation](c, true)
+	op, _ = goioc.Resolve[Operation](true)
 
 	fmt.Printf("Operation quad: %d -> %d\n", 2, op(2))
 

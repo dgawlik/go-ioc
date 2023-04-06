@@ -12,10 +12,10 @@ type Container struct {
 }
 
 // This is default container ready to use project-wise.
-var DefaultContainer Container = NewContainer()
+var DefaultContainer *Container = NewContainer()
 
 // Returns fully initialized container.
-func NewContainer() Container {
+func NewContainer() *Container {
 	data := make(map[string]any)
 
 	c := Container{
@@ -23,22 +23,34 @@ func NewContainer() Container {
 		properties: &data,
 	}
 
-	Bind[Properties](&c, newProperties(&data))
+	targetType := reflect.TypeOf(*new(Properties))
 
-	return c
+	newB := newBinding(targetType, newProperties(&data), false)
+
+	c.bindings = append(c.bindings, newB)
+
+	return &c
+}
+
+func SetContainer(newC *Container) {
+	DefaultContainer = newC
 }
 
 // It attaches any value to the container under some key.
 // Properties can be injected in BindInject to inform
 // autowiring decisions.
-func SetProperty(c *Container, key string, value any) {
+func SetProperty(key string, value any) {
+	c := DefaultContainer
+
 	data := c.properties
 	(*data)[key] = value
 }
 
 // Creates simple binding T <==> value without any
 // further injections.
-func Bind[T any](c *Container, value any) error {
+func Bind[T any](value any) error {
+
+	c := DefaultContainer
 
 	targetType := reflect.TypeOf(*new(T))
 
@@ -56,7 +68,9 @@ func Bind[T any](c *Container, value any) error {
 
 // Creates provider under type T which when injected and being resolved
 // computes aproppirate value.
-func BindInject[T any](c *Container, value any) error {
+func BindInject[T any](value any) error {
+
+	c := DefaultContainer
 
 	targetType := reflect.TypeOf(*new(T))
 
@@ -82,7 +96,9 @@ func BindInject[T any](c *Container, value any) error {
 // Multiple calls result in caching of the dependencies, unless
 // forcecRebind is specified true, in which case all dependencies
 // are recomputed.
-func Resolve[T any](c Container, forceRebind bool) (T, error) {
+func Resolve[T any](forceRebind bool) (T, error) {
+
+	c := DefaultContainer
 
 	template := new(T)
 	targetType := reflect.TypeOf(*template)
