@@ -1,3 +1,5 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/dgawlik/go-ioc)](https://goreportcard.com/report/github.com/dgawlik/go-ioc)
+
 # goioc - lightweight ioc container for go
 
 Coming from Java background I was used to Spring to inject dependencies in large projects, so thought I will also use some container in Go. 
