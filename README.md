@@ -1,4 +1,5 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/dgawlik/go-ioc)](https://goreportcard.com/report/github.com/dgawlik/go-ioc)
+[![Go Reference](https://pkg.go.dev/badge/github.com/dgawlik/go-ioc.svg)](https://pkg.go.dev/github.com/dgawlik/go-ioc)
 
 # goioc - lightweight ioc container for go
 
