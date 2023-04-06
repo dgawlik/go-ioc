@@ -15,6 +15,19 @@ Features:
 * properties (attached per container)
 
 
+### Installation
+
+To install this package, run the following command in your project directory.
+
+```
+go get github.com/dgawlik/go-ioc
+```
+
+Use it like so:
+
+```
+import "github.com/dgawlik/go-ioc"
+```
 
 ### Api
 
