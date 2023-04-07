@@ -75,3 +75,60 @@ func TestInjection(t *testing.T) {
 		},
 	}, res, "Injections should work")
 }
+
+type SomeFunc func(int) int
+type SomeFunc2 func(int) bool
+
+func TestInjectionWrongType(t *testing.T) {
+	c := NewContainer()
+	SetContainer(c)
+
+	err := BindInject[SomeFunc](func() func(x string) string {
+		return func(x string) string {
+			return x
+		}
+	})
+
+	assert.EqualError(t, err, "func(string) string is not convertible to target type goioc.SomeFunc", "Should reject invalid ctor definition")
+}
+
+func TestInjectionNestedBindingNotFound(t *testing.T) {
+	c := NewContainer()
+	SetContainer(c)
+
+	BindInject[SomeFunc](func(e Employee) func(x int) int {
+		return func(x int) int {
+			return x
+		}
+	})
+
+	_, err := Resolve[SomeFunc](false)
+
+	assert.EqualError(t, err, "Binding for goioc.Employee not found", "Should reject invalid ctor definition")
+}
+
+func TestInjectionBindingNotFound(t *testing.T) {
+	c := NewContainer()
+	SetContainer(c)
+
+	_, err := Resolve[SomeFunc](false)
+
+	assert.EqualError(t, err, "Binding for goioc.SomeFunc not found", "Should reject invalid ctor definition")
+}
+
+func TestOverwriteBinding(t *testing.T) {
+	c := NewContainer()
+	SetContainer(c)
+
+	Bind[SomeFunc](func(x int) int {
+		return x * 2
+	})
+
+	Bind[SomeFunc](func(x int) int {
+		return x * 4
+	})
+
+	v, _ := Resolve[SomeFunc](true)
+
+	assert.Equal(t, 8, v(2), "Should overwrite dependency for same type")
+}
