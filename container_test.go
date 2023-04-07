@@ -132,3 +132,35 @@ func TestOverwriteBinding(t *testing.T) {
 
 	assert.Equal(t, 8, v(2), "Should overwrite dependency for same type")
 }
+
+func TestOverwriteBindInject(t *testing.T) {
+	c := NewContainer()
+	SetContainer(c)
+
+	BindInject[SomeFunc](func() func(x int) int {
+		return func(x int) int {
+			return x * 2
+		}
+	})
+
+	BindInject[SomeFunc](func() func(x int) int {
+		return func(x int) int {
+			return x * 4
+		}
+	})
+
+	v, _ := Resolve[SomeFunc](true)
+
+	assert.Equal(t, 8, v(2), "Should overwrite dependency for same type")
+}
+
+func TestValidationNotPassSimpleBinding(t *testing.T) {
+	c := NewContainer()
+	SetContainer(c)
+
+	err := Bind[SomeFunc](func(x string) string {
+		return x
+	})
+
+	assert.EqualError(t, err, "func(string) string is not convertible to target type goioc.SomeFunc", "Should reject invalid ctor definition")
+}
