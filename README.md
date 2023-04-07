@@ -8,25 +8,27 @@ Coming from Java background I was used to Spring to inject dependencies in large
 There are many other packages serving the same purpose, but this one has api (design) closest to my personal preferences. It also 
 is so small that you can read the source code in coffee break.
 
-Features:
+### Features
 
 * injection by *type definition*
+* injection of any type
 * dependencies computed on demand
 * caching of computed dependencies
-* properties (attached per container)
+* properties attached per container
+* minimal codebase
 
 
 ### Installation
 
 To install this package, run the following command in your project directory.
 
-```
+```bash
 go get github.com/dgawlik/go-ioc
 ```
 
 Use it like so:
 
-```
+```go
 import "github.com/dgawlik/go-ioc"
 ```
 
@@ -76,14 +78,14 @@ Sets default container to this one.
 
 ### Design
 
-You can think of the container as curried functions on steroids. Had you used plain technique of curried functions you would 
-have to pass "callbacks" all the way down the hierarchy. In contrast container does this for you during the resolve phase.
-All you have to do is to provide one level down downstream dependencies. The cost that you pay is a little ugly nested function
-definitions in Bind/BindInject.
+The container in fact is currying on steroids. Had you used plain technique of curried functions you would 
+have to pass dependencies all the way down the composed objects. In contrast, the container does this for you and alll you 
+have to do is to only provide direct  dependencies. The injection is not limited to functions any type can be registered and 
+injected (but remember to declare type alias!).
 
-The design lacks concept of scopes familiar from Spring, instead it mocks prototype and singleton scopes with caching and flag `forceRebind`.
-Injections happen during resolution phase, if value is missing from cache it is put there if its there it is reused. This is singleton scope.
-On the other hand if forceRebind equals true container recomputes the value anyway and overwrites the cache - this is prototype scope.
+There are no scopes in the container familiar to Spring, but prototype and singleton scopes can easily be emulated. The container
+looks up dependencies when you try to retrive value by type. If everything works the intermediate results are stored in cache. Consecutive
+calls return same values. Not however, when you pass `forceRebind` true, then cache is omitted in computations and refreshed.
 
 
 ### Examples
