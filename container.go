@@ -6,15 +6,16 @@ import (
 )
 
 // Container holds and autowires all the registered types.
+// The autowiring is lazy and it happens on Resolve call.
 type Container struct {
 	bindings   []Binding
 	properties *map[string]any
 }
 
-// This is default container ready to use project-wise.
+// This is default container implicitly used by the methods.
 var DefaultContainer *Container = NewContainer()
 
-// Returns fully initialized container.
+// Returns ready to use new Container.
 func NewContainer() *Container {
 	data := make(map[string]any)
 
@@ -32,12 +33,13 @@ func NewContainer() *Container {
 	return &c
 }
 
+// Sets new implicit Container.
 func SetContainer(newC *Container) {
 	DefaultContainer = newC
 }
 
-// It attaches any value to the container under some key.
-// Properties can be injected in BindInject to inform
+// It attaches any value to the container under given key.
+// It can be then injected through Properties internal type in BindInject to inform
 // autowiring decisions.
 func SetProperty(key string, value any) {
 	c := DefaultContainer
@@ -46,8 +48,8 @@ func SetProperty(key string, value any) {
 	(*data)[key] = value
 }
 
-// Creates simple binding T <==> value without any
-// further injections.
+// Creates plain binding T <==> value without any
+// further nested injections.
 func Bind[T any](value any) error {
 
 	c := DefaultContainer
@@ -72,8 +74,8 @@ func Bind[T any](value any) error {
 	return nil
 }
 
-// Creates provider under type T which when injected and being resolved
-// computes aproppirate value.
+// Creates constructor on injections under type T which when being resolved
+// computes aproppirate value which nested bindings.
 func BindInject[T any](value any) error {
 
 	c := DefaultContainer
