@@ -87,7 +87,7 @@ func (b *Binding) resolve(bindings []Binding, forceRebind bool) (any, error) {
 			return nil, err
 		}
 
-		injections = append(injections, reflect.ValueOf(v))
+		injections = append(injections, reflect.ValueOf(v).Convert(bindings[idx].targetType))
 	}
 
 	b.resolved = reflect.ValueOf(b.ctor).Call(injections)[0].Interface()
