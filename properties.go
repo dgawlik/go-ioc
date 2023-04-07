@@ -26,7 +26,7 @@ func getType[T any](data *map[string]any, key string) (T, bool) {
 		return *new(T), ok
 	}
 
-	return v2, false
+	return v2, true
 }
 
 func (p *Properties) String(key string) (string, bool) {
