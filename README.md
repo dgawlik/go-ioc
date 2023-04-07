@@ -1,6 +1,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/dgawlik/go-ioc)](https://goreportcard.com/report/github.com/dgawlik/go-ioc)
 [![Go Reference](https://pkg.go.dev/badge/github.com/dgawlik/go-ioc.svg)](https://pkg.go.dev/github.com/dgawlik/go-ioc)
 [![codecov](https://codecov.io/gh/dgawlik/go-ioc/branch/main/graph/badge.svg?token=01D16O3TW8)](https://codecov.io/gh/dgawlik/go-ioc)
+[![License: GPL v2](https://img.shields.io/badge/License-GPL_v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![Tag](https://img.shields.io/github/v/tag/dgawlik/go-ioc)](https://github.com/dgawlik/go-ioc/releases/tag/v0.3.0)
 
 # goioc - lightweight ioc container for go
 
