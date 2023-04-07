@@ -74,7 +74,7 @@ func Bind[T any](value any) error {
 	return nil
 }
 
-// Creates constructor on injections under type T which when being resolved
+// Creates constructor on injections under type T, which when being resolved
 // computes aproppirate value which nested bindings.
 func BindInject[T any](value any) error {
 
