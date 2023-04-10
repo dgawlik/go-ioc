@@ -164,3 +164,37 @@ func TestValidationNotPassSimpleBinding(t *testing.T) {
 
 	assert.EqualError(t, err, "func(string) string is not convertible to target type goioc.SomeFunc", "Should reject invalid ctor definition")
 }
+
+func TestInjectResolveOk(t *testing.T) {
+	c := NewContainer()
+	SetContainer(c)
+
+	Bind[SomeFunc](func(a int) int {
+		return a * 2
+	})
+
+	res, _ := InjectResolve[SomeFunc2](func(fn SomeFunc) func(b int) bool {
+		return func(b int) bool {
+			return fn(1) == b
+		}
+	}, false)
+
+	assert.Equal(t, true, res(2), "Should inject successfully")
+}
+
+func TestInjectResolveErr(t *testing.T) {
+	c := NewContainer()
+	SetContainer(c)
+
+	Bind[SomeFunc](func(a int) int {
+		return a * 2
+	})
+
+	_, err := InjectResolve[SomeFunc2](func(fn SomeFunc) func(b int) string {
+		return func(b int) string {
+			return "hello"
+		}
+	}, false)
+
+	assert.EqualError(t, err, "func(int) string is not convertible to target type goioc.SomeFunc2", "Should reject validation")
+}

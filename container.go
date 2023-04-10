@@ -105,33 +105,14 @@ func InjectBind[T any](value any, isPrototype bool) error {
 // forcecRebind is specified true, in which case all dependencies
 // are recomputed.
 func Resolve[T any](forceRebind bool) (T, error) {
-
-	c := DefaultContainer
-
-	template := new(T)
-	targetType := reflect.TypeOf(*template)
-
-	value := reflect.ValueOf(template).Elem()
-
-	idx := findBinding(c.bindings, targetType)
-
-	if idx == -1 {
-		return *template, fmt.Errorf("Binding for %v not found", reflect.TypeOf(value.Interface()))
-	}
-
-	result, err := c.bindings[idx].resolve(c.bindings, forceRebind)
-	if err != nil {
-		return *template, err
-	}
-
-	binding := reflect.ValueOf(result)
-
-	value.Set(binding)
-	return *template, nil
+	return resolveInternal[T](nil, forceRebind)
 }
 
 func InjectResolve[T any](ctor any, forceRebind bool) (T, error) {
+	return resolveInternal[T](ctor, forceRebind)
+}
 
+func resolveInternal[T any](ctor any, forceRebind bool) (T, error) {
 	c := DefaultContainer
 
 	template := new(T)
@@ -139,7 +120,27 @@ func InjectResolve[T any](ctor any, forceRebind bool) (T, error) {
 
 	value := reflect.ValueOf(template).Elem()
 
-	newB := newBinding(targetType, value, true, false)
+	var newB Binding
+
+	if ctor != nil {
+		newB = newBinding(targetType, ctor, true, false)
+
+		err := validate(newB, true)
+
+		if err != nil {
+			return *template, err
+		}
+
+	} else {
+
+		idx := findBinding(c.bindings, targetType)
+
+		if idx == -1 {
+			return *template, fmt.Errorf("Binding for %v not found", reflect.TypeOf(value.Interface()))
+		}
+
+		newB = c.bindings[idx]
+	}
 
 	result, err := newB.resolve(c.bindings, forceRebind)
 	if err != nil {
