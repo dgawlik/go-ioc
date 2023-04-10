@@ -26,7 +26,7 @@ func main() {
 		return true
 	})
 
-	goioc.InjectBind[Greeter](func(isPrime IsPrime) func(name string, age int) {
+	greeter, _ := goioc.InjectResolve[Greeter](func(isPrime IsPrime) func(name string, age int) {
 		return func(name string, age int) {
 			statement := "is not"
 			if isPrime(age) {
@@ -36,8 +36,6 @@ func main() {
 			fmt.Printf("Hello %s, your age %s prime.\n", name, statement)
 		}
 	}, false)
-
-	greeter, _ := goioc.Resolve[Greeter](false)
 
 	greeter("Dominik", 33)
 }

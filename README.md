@@ -123,7 +123,7 @@ func main() {
 		return true
 	})
 
-	goioc.BindInject[Greeter](func(isPrime IsPrime) func(name string, age int) {
+	greeter, _ := goioc.InjectResolve[Greeter](func(isPrime IsPrime) func(name string, age int) {
 		return func(name string, age int) {
 			statement := "is not"
 			if isPrime(age) {
@@ -132,12 +132,11 @@ func main() {
 
 			fmt.Printf("Hello %s, your age %s prime.\n", name, statement)
 		}
-	})
-
-	greeter, _ := goioc.Resolve[Greeter](false)
+	}, false)
 
 	greeter("Dominik", 33)
 }
+
 ```
 
 
@@ -188,7 +187,7 @@ func main() {
 }
 ```
 
-How to simulate protype scope
+How to refresh dependencies
 
 ```go
 package main

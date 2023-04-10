@@ -108,6 +108,9 @@ func Resolve[T any](forceRebind bool) (T, error) {
 	return resolveInternal[T](nil, forceRebind)
 }
 
+// It differs from resolve that the injected value is not in cache
+// you provide constructor for it. It returns injected value without
+// putting it to cache
 func InjectResolve[T any](ctor any, forceRebind bool) (T, error) {
 	return resolveInternal[T](ctor, forceRebind)
 }
