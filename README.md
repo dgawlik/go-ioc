@@ -43,6 +43,11 @@ func Resolve[T any](forceRebind bool) (T, error)
 Returns fully injected value bound to type T. On consecutive calls and forceRebind false, value from
 cache is taken. forceRebind forces to create new injected values anyway and overwrite cache.
 
+```go
+func InjectResolve[T any](ctor any, forceRebind bool) (T, error) 
+```
+Returns value injected on the fly by provided constructor. The value is never put to cache.
+
 
 ```go
 func Bind[T any](value any) error
@@ -52,11 +57,11 @@ Associates value with type T. The value is taken as is from the function and put
 
 
 ```go
-func BindInject[T any](value any) error
+func InjectBind[T any](value any, isPrototype bool) error
 ```
 
 Expects curried function to be provided. Outer function's parameters are values to be injected. During
-resolve this function is called to produce **proper** value.
+resolve this function is called to produce **proper** value. If prototype flag is set, it is never put to cache.
 
 ```go
 func SetProperty(key string, value any) 
