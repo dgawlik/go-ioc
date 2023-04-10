@@ -26,7 +26,7 @@ func NewContainer() *Container {
 
 	targetType := reflect.TypeOf(*new(Properties))
 
-	newB := newBinding(targetType, newProperties(&data), false)
+	newB := newBinding(targetType, newProperties(&data), false, true)
 
 	c.bindings = append(c.bindings, newB)
 
@@ -56,7 +56,7 @@ func Bind[T any](value any) error {
 
 	targetType := reflect.TypeOf(*new(T))
 
-	newB := newBinding(targetType, value, false)
+	newB := newBinding(targetType, value, false, false)
 
 	err := validate(newB, false)
 
@@ -76,13 +76,13 @@ func Bind[T any](value any) error {
 
 // Creates constructor on injections under type T, which when being resolved
 // computes aproppirate value which nested bindings.
-func BindInject[T any](value any) error {
+func InjectBind[T any](value any, isPrototype bool) error {
 
 	c := DefaultContainer
 
 	targetType := reflect.TypeOf(*new(T))
 
-	newB := newBinding(targetType, value, true)
+	newB := newBinding(targetType, value, true, isPrototype)
 
 	err := validate(newB, true)
 
@@ -119,13 +119,33 @@ func Resolve[T any](forceRebind bool) (T, error) {
 		return *template, fmt.Errorf("Binding for %v not found", reflect.TypeOf(value.Interface()))
 	}
 
-	_, err := c.bindings[idx].resolve(c.bindings, forceRebind)
+	result, err := c.bindings[idx].resolve(c.bindings, forceRebind)
 	if err != nil {
 		return *template, err
 	}
 
-	binding := reflect.ValueOf(c.bindings[idx].resolved)
+	binding := reflect.ValueOf(result)
 
 	value.Set(binding)
+	return *template, nil
+}
+
+func InjectResolve[T any](ctor any, forceRebind bool) (T, error) {
+
+	c := DefaultContainer
+
+	template := new(T)
+	targetType := reflect.TypeOf(*template)
+
+	value := reflect.ValueOf(template).Elem()
+
+	newB := newBinding(targetType, value, true, false)
+
+	result, err := newB.resolve(c.bindings, forceRebind)
+	if err != nil {
+		return *template, err
+	}
+
+	value.Set(reflect.ValueOf(result))
 	return *template, nil
 }

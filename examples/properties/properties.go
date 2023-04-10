@@ -18,14 +18,14 @@ func quad(x int) int {
 
 func main() {
 
-	goioc.BindInject[Operation](func(props goioc.Properties) func(x int) int {
+	goioc.InjectBind[Operation](func(props goioc.Properties) func(x int) int {
 		v, _ := props.String("mode")
 		if v == "double" {
 			return double
 		} else {
 			return quad
 		}
-	})
+	}, false)
 
 	goioc.SetProperty("mode", "double")
 

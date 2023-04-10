@@ -18,11 +18,11 @@ func main() {
 
 	fmt.Println(err)
 
-	err = goioc.BindInject[SomeFunc](func(fn SomeOtherFunc) func(string) {
+	err = goioc.InjectBind[SomeFunc](func(fn SomeOtherFunc) func(string) {
 		return func(s string) {
 			fmt.Println("Hello World")
 		}
-	})
+	}, true)
 
 	fmt.Println(err)
 }

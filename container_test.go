@@ -20,14 +20,14 @@ func TestPropertyAvailableForInjection(t *testing.T) {
 	SetContainer(c)
 
 	found := false
-	BindInject[TestFunc](func(props Properties) func() {
+	InjectBind[TestFunc](func(props Properties) func() {
 		return func() {
 			_, ok := props.String("test")
 			if ok {
 				found = true
 			}
 		}
-	})
+	}, true)
 
 	SetProperty("test", "test")
 
@@ -55,14 +55,14 @@ func TestInjection(t *testing.T) {
 
 	Bind[Work](Work{"typing on the keyboard"})
 
-	BindInject[Employee](func(wrk Work) Employee {
+	InjectBind[Employee](func(wrk Work) Employee {
 		return Employee{
 			name:    "Dominik",
 			surname: "Gawlik",
 			age:     33,
 			work:    wrk,
 		}
-	})
+	}, true)
 
 	res, _ := Resolve[Employee](false)
 
@@ -83,11 +83,11 @@ func TestInjectionWrongType(t *testing.T) {
 	c := NewContainer()
 	SetContainer(c)
 
-	err := BindInject[SomeFunc](func() func(x string) string {
+	err := InjectBind[SomeFunc](func() func(x string) string {
 		return func(x string) string {
 			return x
 		}
-	})
+	}, true)
 
 	assert.EqualError(t, err, "func(string) string is not convertible to target type goioc.SomeFunc", "Should reject invalid ctor definition")
 }
@@ -96,11 +96,11 @@ func TestInjectionNestedBindingNotFound(t *testing.T) {
 	c := NewContainer()
 	SetContainer(c)
 
-	BindInject[SomeFunc](func(e Employee) func(x int) int {
+	InjectBind[SomeFunc](func(e Employee) func(x int) int {
 		return func(x int) int {
 			return x
 		}
-	})
+	}, true)
 
 	_, err := Resolve[SomeFunc](false)
 
@@ -137,17 +137,17 @@ func TestOverwriteBindInject(t *testing.T) {
 	c := NewContainer()
 	SetContainer(c)
 
-	BindInject[SomeFunc](func() func(x int) int {
+	InjectBind[SomeFunc](func() func(x int) int {
 		return func(x int) int {
 			return x * 2
 		}
-	})
+	}, true)
 
-	BindInject[SomeFunc](func() func(x int) int {
+	InjectBind[SomeFunc](func() func(x int) int {
 		return func(x int) int {
 			return x * 4
 		}
-	})
+	}, true)
 
 	v, _ := Resolve[SomeFunc](true)
 

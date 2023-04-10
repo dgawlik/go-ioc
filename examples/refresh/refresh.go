@@ -20,7 +20,7 @@ func main() {
 		}
 	})
 
-	goioc.BindInject[Filter](func(f Fn) func([]int) []int {
+	goioc.InjectBind[Filter](func(f Fn) func([]int) []int {
 
 		return func(arr []int) []int {
 			var newArr []int
@@ -34,7 +34,7 @@ func main() {
 			return newArr
 		}
 
-	})
+	}, false)
 
 	arr := [10]int{1, 2, 3, 4, 5, 7, 8, 9}
 

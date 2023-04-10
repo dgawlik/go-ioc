@@ -9,21 +9,24 @@ type Binding struct {
 	targetType reflect.Type
 	ctor       any
 	resolved   any
+	isProtype  bool
 }
 
-func newBinding(targetType reflect.Type, value any, isCtor bool) Binding {
+func newBinding(targetType reflect.Type, value any, isCtor bool, isPrototype bool) Binding {
 
 	if isCtor {
 		return Binding{
 			ctor:       value,
 			resolved:   nil,
 			targetType: targetType,
+			isProtype:  isPrototype,
 		}
 	} else {
 		return Binding{
 			ctor:       nil,
 			resolved:   value,
 			targetType: targetType,
+			isProtype:  isPrototype,
 		}
 	}
 
@@ -90,7 +93,11 @@ func (b *Binding) resolve(bindings []Binding, forceRebind bool) (any, error) {
 		injections = append(injections, reflect.ValueOf(v).Convert(bindings[idx].targetType))
 	}
 
-	b.resolved = reflect.ValueOf(b.ctor).Call(injections)[0].Interface()
+	result := reflect.ValueOf(b.ctor).Call(injections)[0].Interface()
 
-	return b.resolved, nil
+	if !b.isProtype {
+		b.resolved = result
+	}
+
+	return result, nil
 }

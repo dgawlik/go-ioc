@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewBindingIsCtor(t *testing.T) {
-	binding := newBinding(reflect.TypeOf(1), 1, true)
+	binding := newBinding(reflect.TypeOf(1), 1, true, false)
 
 	assert.Equal(t, Binding{
 		targetType: reflect.TypeOf(1),
@@ -18,7 +18,7 @@ func TestNewBindingIsCtor(t *testing.T) {
 }
 
 func TestNewBindingIsNotCtor(t *testing.T) {
-	binding := newBinding(reflect.TypeOf(1), 1, false)
+	binding := newBinding(reflect.TypeOf(1), 1, false, false)
 
 	assert.Equal(t, Binding{
 		targetType: reflect.TypeOf(1),
@@ -32,7 +32,7 @@ func TestValidatorNotCtor(t *testing.T) {
 		return x, x
 	}
 
-	binding := newBinding(reflect.TypeOf(fn).Out(0), fn, true)
+	binding := newBinding(reflect.TypeOf(fn).Out(0), fn, true, false)
 
 	err := validate(binding, true)
 
@@ -46,7 +46,7 @@ func TestValidatorNotCtor2(t *testing.T) {
 		}, false
 	}
 
-	binding := newBinding(reflect.TypeOf(fn).Out(0), fn, true)
+	binding := newBinding(reflect.TypeOf(fn).Out(0), fn, true, false)
 
 	err := validate(binding, true)
 
@@ -60,7 +60,7 @@ func TestValidatorCtor(t *testing.T) {
 		}
 	}
 
-	binding := newBinding(reflect.TypeOf(fn).Out(0), fn, true)
+	binding := newBinding(reflect.TypeOf(fn).Out(0), fn, true, false)
 
 	err := validate(binding, true)
 
@@ -76,7 +76,7 @@ func TestValidatorPlainNotConvertible(t *testing.T) {
 		return x
 	}
 
-	binding := newBinding(reflect.TypeOf(fn1), fn2, false)
+	binding := newBinding(reflect.TypeOf(fn1), fn2, false, false)
 
 	err := validate(binding, false)
 
